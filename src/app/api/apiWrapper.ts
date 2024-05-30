@@ -8,6 +8,9 @@ export const apiWrapper = async (
 ) => {
   let response;
   let handler;
+
+  console.log('procss:', process.env.NEXT_PUBLIC_API_URL, url)
+
   switch (method) {
     case "GET":
       handler = axios.get;

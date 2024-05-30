@@ -23,7 +23,7 @@ export const apiDataToStakingScripts = (
   let stakingScriptData;
   try {
     stakingScriptData = new StakingScriptData(
-      Buffer.from(publicKeyNoCoord, "hex"),
+      Buffer.from(publicKeyNoCoord, "hex"), //
       [Buffer.from(finalityProviderPkHex, "hex")],
       covenantPKsBuffer,
       globalParams.covenantQuorum,
