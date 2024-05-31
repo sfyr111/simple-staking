@@ -4,7 +4,7 @@ export async function GET(request: Request) {
   try {
     const bitcoinWallet = initBitcoinCoreWallet()
 
-    const data = await bitcoinWallet.getPublicKeyHex();
+    const data = await bitcoinWallet.getPublicKey(new URL(request.url).searchParams.get('address'));
 
     return Response.json({ data })
   } catch (error) {

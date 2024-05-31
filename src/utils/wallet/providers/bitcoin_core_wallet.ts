@@ -10,7 +10,7 @@ import {
 export class BitcoinCoreWallet extends WalletProvider {
   private client: Client;
 
-  constructor(walletName = "demo") {
+  constructor(walletName = "legacy_wallet") {
     super();
     this.client = new Client({
       wallet: walletName,
@@ -50,6 +50,20 @@ export class BitcoinCoreWallet extends WalletProvider {
   async getAddress(): Promise<string> {
     // Check if an address with a specific label exists
     const label = "primary";
+    const addresses = await this.client.listReceivedByAddress();
+    if (addresses.length > 0 && addresses[0].address) {
+      return addresses[0].address;
+    } else {
+      // If no address with this label, create a new taproot address and label it
+      const newAddress = await this.client.getNewAddress();
+      console.log("Taproot Address:", newAddress);
+      return newAddress;
+    }
+  }
+
+  async getNewAddress(): Promise<string> {
+    // Check if an address with a specific label exists
+    const label = "primary";
     const addresses = await this.client.listReceivedByAddress(0, true, true, label);
     if (addresses.length > 0 && addresses[0].address) {
       return addresses[0].address;
@@ -66,6 +80,12 @@ export class BitcoinCoreWallet extends WalletProvider {
     const address = await this.getAddress();
     const validateAddressInfo = await this.client.validateAddress(address);
     return validateAddressInfo.pubkey;
+  }
+
+  async getPublicKey(address: string): Promise<string> {
+    // Example of retrieving the public key of the first address in the wallet
+    const res = await this.client.getAddressInfo(address);
+    return res.pubkey;
   }
 
   async signPsbt(psbtHex: string): Promise<string> {

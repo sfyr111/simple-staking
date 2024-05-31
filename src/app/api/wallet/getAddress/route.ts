@@ -8,6 +8,7 @@ export async function GET(request: Request) {
 
     return Response.json({ data })
   } catch (error) {
+    console.log('bitcoinWallet.getAddress() error, ', error)
     return Response.json({ error: (error as Error).message }, { status: 500 })
   }
 }

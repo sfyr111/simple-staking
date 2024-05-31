@@ -68,6 +68,8 @@ export abstract class WalletProvider {
    */
   abstract getPublicKeyHex(): Promise<string>;
 
+  abstract getPublicKey(address: string): Promise<string>;
+
   /**
    * Signs the given PSBT in hex format.
    * @param psbtHex - The hex string of the unsigned PSBT to sign.

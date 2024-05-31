@@ -28,9 +28,11 @@ const WalletPage = () => {
   const handleGetAddress = async () => {
     try {
       const addr = await wallet.getAddress();
-      setAddress(addr);
-      setResponse(`Address: ${addr}`);
+      setAddress(addr.data);
+      setResponse(`Address: ${addr.data}`);
+      console.log(addr)
     } catch (err) {
+      console.error('err: ', err)
       setError(err.message);
     }
   };
@@ -38,8 +40,8 @@ const WalletPage = () => {
   const handleGetBalance = async () => {
     try {
       const bal = await wallet.getBalance();
-      setBalance(bal);
-      setResponse(`Balance: ${bal}`);
+      setBalance(bal.data);
+      setResponse(`Balance: ${bal.data}`);
     } catch (err) {
       setError(err.message);
     }
@@ -47,9 +49,9 @@ const WalletPage = () => {
 
   const handleGetPublicKey = async () => {
     try {
-      const key = await wallet.getPublicKeyHex();
-      setPublicKey(key);
-      setResponse(`Public Key: ${key}`);
+      const key = await wallet.getPublicKeyHex(address);
+      setPublicKey(key.data);
+      setResponse(`Public Key: ${key.data}`);
     } catch (err) {
       setError(err.message);
     }

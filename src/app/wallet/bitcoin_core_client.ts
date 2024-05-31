@@ -18,8 +18,8 @@ export class BitcoinCoreWalletClient {
     return fetch(`${this.baseURL}/getAddress`).then(res => res.json());
   }
 
-  async getPublicKeyHex(): Promise<any> {
-    return fetch(`${this.baseURL}/getPublicKeyHex`).then(res => res.json());
+  async getPublicKeyHex(address: string): Promise<any> {
+    return fetch(`${this.baseURL}/getPublicKeyHex?address=${address}`).then(res => res.json());
   }
 
   async signPsbt(psbtHex: string): Promise<any> {
