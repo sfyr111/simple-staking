@@ -11,7 +11,7 @@ import { toNetwork } from "@/utils/wallet";
 
 const globalParams = GlobalParams.versions[0];
 const finalityProviders = ['03af59df7988cffe586dd2577ff8e469202fb30a6a60e51bb1a588b2739b1bf18a']
-const stakingDuration = 2; // 10000 # ~70 days
+const stakingDuration = 108; // 10000 # ~70 days
 const stakingAmount = 0.1 * 1e8;
 const magicBytes: Buffer = Buffer.from("62627434", "hex"); // "bbt4" tag
 
@@ -87,6 +87,13 @@ const WalletPage = () => {
   const handleGetPublicKey = async () => {
     try {
       const key = await wallet.getPublicKeyHex(address);
+
+      console.log('pk: ', key);
+      console.log('pk: ', Buffer.from(key, 'hex').subarray(1,33))
+      console.log('pk: ', Buffer.from(key, 'hex').slice(1,33))
+      console.log()
+      console.log('pk: ', Buffer.from(key, 'hex').subarray(1,33).toString('hex'))
+      console.log('pk: ', Buffer.from(key, 'hex').slice(1,33).toString('hex'))
       setPublicKey(key);
       setResponse(`Public Key: ${key}`);
     } catch (err) {
@@ -157,7 +164,7 @@ const WalletPage = () => {
     try {
       // Create staking script data object
       const stakingScriptData = new StakingScriptData(
-          Buffer.from(publicKey, 'hex').slice(1, 33), // stakerPk
+          Buffer.from(publicKey, 'hex').subarray(1, 33), // stakerPk
           finalityProviders.map(pk => Buffer.from(pk, 'hex').slice(1, 33)),
           globalParams.covenant_pks.map(pk => Buffer.from(pk, 'hex').slice(1, 33)),
           globalParams.covenant_quorum,
@@ -194,7 +201,6 @@ const WalletPage = () => {
   };
 
   const createStakingTransaction = async () => {
-    const publicKeyNoCoord = await wallet.getPublicKeyHex(address);
     const network = await wallet.getNetwork();
     const lockHeight = await wallet.getBTCTipHeight();
     const { fastestFee } = await wallet.getNetworkFees();
@@ -207,7 +213,7 @@ const WalletPage = () => {
         utxos, // inputUTXOs,
         toNetwork(network),
         fastestFee, // feeRate,
-        Buffer.from(publicKeyNoCoord).slice(1, 33),
+        Buffer.from(publicKey, 'hex').subarray(1, 33),
         lockHeight - 1, // from global params
     );
 
@@ -256,6 +262,9 @@ const WalletPage = () => {
 
     // Sign the PSBT
     const signedWithdrawalPsbt = await wallet.signPsbt(unSignedWithdrawalPsbtHex);
+
+    const finalPsbt = Psbt.fromHex(signedWithdrawalPsbt);
+    finalPsbt.finalizeAllInputs();
 
     // Extract the finalized transaction
     const withdrawalTx = Psbt.fromHex(signedWithdrawalPsbt).extractTransaction();

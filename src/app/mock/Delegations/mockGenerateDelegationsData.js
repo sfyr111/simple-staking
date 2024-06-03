@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateRandomDelegationData = void 0;
 function generateRandomHex(size) {
     return [...Array(size)]
         .map(() => Math.floor(Math.random() * 16).toString(16))

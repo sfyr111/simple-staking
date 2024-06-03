@@ -10,7 +10,7 @@ const { networks, TransactionBuilder, script } = bitcoin;
 
 // 使用的网络（这里使用比特币测试网，实际应用应选择正确的网络）
 const network = networks.regtest;
-bitcoin.initEccLib(ecc);
+
 const ECPair = ECPairFactory(ecc);
 
 // 导入私钥和公钥

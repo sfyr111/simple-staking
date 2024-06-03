@@ -1,16 +1,18 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.mockGetDelegations = void 0;
 const mockGenerateDelegationsData_1 = require("./mockGenerateDelegationsData");
-const allMockData = mockGenerateDelegationsData_1.generateRandomDelegationData(1000);
-exports.mockGetDelegations = (key, publicKeyNoCoord) => __awaiter(this, void 0, void 0, function* () {
+const allMockData = (0, mockGenerateDelegationsData_1.generateRandomDelegationData)(1000);
+const mockGetDelegations = (key, publicKeyNoCoord) => __awaiter(void 0, void 0, void 0, function* () {
     if (!publicKeyNoCoord) {
         throw new Error("No public key provided");
     }
@@ -25,8 +27,9 @@ exports.mockGetDelegations = (key, publicKeyNoCoord) => __awaiter(this, void 0, 
     return {
         data,
         pagination: {
-            next_key: nextKey ? .toString() || "" : ,
+            next_key: (nextKey === null || nextKey === void 0 ? void 0 : nextKey.toString()) || "",
         },
     };
 });
+exports.mockGetDelegations = mockGetDelegations;
 //# sourceMappingURL=mockGetDelegations.js.map

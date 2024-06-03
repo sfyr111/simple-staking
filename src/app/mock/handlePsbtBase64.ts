@@ -11,6 +11,10 @@ async function signAndExtractTransaction(psbtBase64: string, privateKeyWIF: stri
   const privateKey = ECPair.fromWIF(privateKeyWIF, network);
   const psbt = bitcoin.Psbt.fromBase64(psbtBase64);
 
+  const publicKey = privateKey.publicKey.toString('hex');
+
+  console.log('publicKey: ', publicKey)
+  console.log(publicKey === '023e61dd9b70d4f6d5a2c30f955995b4186f0374c781a69cbbce244b7140d24281')
   /*
   *
   * {
@@ -32,11 +36,11 @@ async function signAndExtractTransaction(psbtBase64: string, privateKeyWIF: stri
   for (let i = 0; i < psbt.inputCount; i++) {
     const sighashTypes = bitcoin.Transaction.SIGHASH_DEFAULT;  // 使用 Taproot 推荐的默认 sighash
     // 确保使用对应的方法进行签名
-    psbt.signInput(i, privateKey, sighashTypes);
+    psbt.signInput(i, privateKey);
     // 验证签名，如果不验证，直接调用finalize可能会因为无效签名而出错
-    if (!psbt.validateSignaturesOfInput(i, privateKey.publicKey)) {
-      throw new Error(`Invalid signature for input ${i}`);
-    }
+    // if (!psbt.validateSignaturesOfInput(i, privateKey.publicKey)) {
+    //   throw new Error(`Invalid signature for input ${i}`);
+    // }
   }
 
   // 完成所有输入
@@ -44,13 +48,17 @@ async function signAndExtractTransaction(psbtBase64: string, privateKeyWIF: stri
 
   // 提取交易
   const transaction = psbt.extractTransaction();
-  return transaction.toHex();
+  const txHex = transaction.toHex();
+  console.log(txHex);
+
+  // Signed transaction hex: 02000000000101d017469f304d8f37c631776e5eb7e747107bb8c49d418048d39a7a199742140000000000006c00000001ec909600000000001600140670a92035ad0828f4a7b30f82fb6811e8d4af6203402113aee2d88edf44c89b4b396524cb8f221a4df674293b53eb86af23b506221b9071bff0ebc62c04ebcc5ddb855a637e19c443d34f855dcd50c994a41b0e7c5225203e61dd9b70d4f6d5a2c30f955995b4186f0374c781a69cbbce244b7140d24281ad016cb261c183a8066a87cb2fe9800171ac79e464977b938e0f22059b9f75a9fb2d19d0e683e600bb980e85f47f009a36ff53e19fb28206d7640cf64b1edb25f9ecbd68e2fe778768440b134a62dd0cefc852f1b4a843af0dada9c8809f68215691957897cb00000000
+  return txHex;
 }
 
 // 假设您有一个函数来获取保存的 PSBT 和私钥
 async function handleWithdrawalTransaction(psbtBase64) {
   console.log('psbtBase64: ', psbtBase64);
-  const privateKeyWIF = 'cNjEdTh2Aq9uCRqUnTaFv62i6HWgr4EEzosNaya8ssTry8NNgjRm'; // 使用适当的值
+  const privateKeyWIF = 'cVdXE4grxmNeLEjnMFqYTg7og7owy25cLBmwxodMMFhpPE1ki8S8'; // 使用适当的值
   const network = bitcoin.networks.regtest; // 或 bitcoin.networks.testnet
 
   if (psbtBase64) {
@@ -61,5 +69,8 @@ async function handleWithdrawalTransaction(psbtBase64) {
   }
 }
 
-// cHNidP8BAFICAAAAAbypNwubGHHUmyWhIEOJmvyGkbBwTUWl/Vec2WybXObBAAAAAADwAwAAAViLlAAAAAAAFgAUBnCpIDWtCCj0p7MPgvtoEejUr2IAAAAAAAEBK4CWmAAAAAAAIlEgA5Od1/3f8l57HQ368NXfpBgv8aqKM7QUx2H9BfXccCNiFcCDqAZqh8sv6YABcax55GSXe5OODyIFm591qfstGdDmg+YAu5gOhfR/AJo2/1Phn7KCBtdkDPZLHtsl+ey9aOL+d4doRAsTSmLdDO/IUvG0qEOvDa2pyICfaCFWkZV4l8snID5h3Ztw1PbVosMPlVmVtBhvA3THgaacu84kS3FA0kKBrQLwA7LAARcgg6gGaofLL+mAAXGseeRkl3uTjg8iBZufdan7LRnQ5oMAAA==
+
+// PSBT base64
+// cHNidP8BAFICAAAAAdAXRp8wTY83xjF3bl6350cQe7jEnUGASNOaehmXQhQAAAAAAABsAAAAAeyQlgAAAAAAFgAUBnCpIDWtCCj0p7MPgvtoEejUr2IAAAAAAAEBK4CWmAAAAAAAIlEgrJ5v+3rZAb5OGIyz+kIonP844WV2uGh80mBs/SXtiIxiFcGDqAZqh8sv6YABcax55GSXe5OODyIFm591qfstGdDmg+YAu5gOhfR/AJo2/1Phn7KCBtdkDPZLHtsl+ey9aOL+d4doRAsTSmLdDO/IUvG0qEOvDa2pyICfaCFWkZV4l8smID5h3Ztw1PbVosMPlVmVtBhvA3THgaacu84kS3FA0kKBrQFsssABFyCDqAZqh8sv6YABcax55GSXe5OODyIFm591qfstGdDmgwAiAgI+Yd2bcNT21aLDD5VZlbQYbwN0x4GmnLvOJEtxQNJCgRBQmfBkAAAAgAAAAIABAACAAA==
+
 handleWithdrawalTransaction(process.argv[2]);

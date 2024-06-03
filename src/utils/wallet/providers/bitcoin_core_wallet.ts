@@ -95,11 +95,17 @@ export class BitcoinCoreWallet extends WalletProvider {
   }
 
   async signPsbt(psbtHex: string): Promise<string> {
-    console.log('psbtHex: ', psbtHex)
+    console.log('Signing PSBT with hex:', psbtHex);
     const signedPsbt = await this.client.walletProcessPsbt(Buffer.from(psbtHex, 'hex').toString('base64'));
-    console.log('signedPsbt: ', signedPsbt)
+    console.log('Signed PSBT:', signedPsbt);
+
+    if (!signedPsbt.complete) {
+      console.error('PSBT signing incomplete');
+    }
+
     return Buffer.from(signedPsbt.psbt, 'base64').toString('hex');
   }
+
 
   async signPsbts(psbtsHexes: string[]): Promise<string[]> {
     const signedPsbts = [];
