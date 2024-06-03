@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const requestBody = await request.json();
     const { message } = requestBody;
     const signature = await bitcoinWallet.signMessageBIP322(message);
-    return Response.json({ data: signature })
+    return Response.json(signature)
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 })
   }

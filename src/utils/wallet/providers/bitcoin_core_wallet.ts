@@ -7,6 +7,12 @@ import {
   WalletInfo,
 } from "../wallet_provider";
 
+function convertBtcKvBToSatoshiPerByte(btcPerKvB: number) {
+  const satoshiPerKB = btcPerKvB * 100000000; // 从 BTC/kvB 转换为 satoshi/kB
+  const satoshiPerByte = satoshiPerKB / 1000; // 从 satoshi/kB 转换为 satoshi/byte
+  return satoshiPerByte;
+}
+
 export class BitcoinCoreWallet extends WalletProvider {
   private client: Client;
 
@@ -36,7 +42,7 @@ export class BitcoinCoreWallet extends WalletProvider {
   }
 
   async getNetwork() {
-    return Network.SIGNET;
+    return Network.RETEST;
   }
 
   on(eventName: string, callBack: () => void) {
@@ -55,7 +61,7 @@ export class BitcoinCoreWallet extends WalletProvider {
       return addresses[0].address;
     } else {
       // If no address with this label, create a new taproot address and label it
-      const newAddress = await this.client.getNewAddress();
+      const newAddress = await this.client.getNewAddress(label, 'bech32');
       console.log("Taproot Address:", newAddress);
       return newAddress;
     }
@@ -89,8 +95,10 @@ export class BitcoinCoreWallet extends WalletProvider {
   }
 
   async signPsbt(psbtHex: string): Promise<string> {
-    const signedPsbt = await this.client.walletProcessPSBT(psbtHex);
-    return signedPsbt.psbt; // Return the signed PSBT
+    console.log('psbtHex: ', psbtHex)
+    const signedPsbt = await this.client.walletProcessPsbt(Buffer.from(psbtHex, 'hex').toString('base64'));
+    console.log('signedPsbt: ', signedPsbt)
+    return Buffer.from(signedPsbt.psbt, 'base64').toString('hex');
   }
 
   async signPsbts(psbtsHexes: string[]): Promise<string[]> {
@@ -111,12 +119,13 @@ export class BitcoinCoreWallet extends WalletProvider {
 
   async getNetworkFees(): Promise<Fees> {
     const result = await this.client.estimateSmartFee(6); // 6 is the number of blocks for confirmation target
+    const satoshis = convertBtcKvBToSatoshiPerByte(result.feerate);
     return {
-      fastestFee: result.feerate, // Convert appropriately if needed
-      halfHourFee: result.feerate,
-      hourFee: result.feerate,
-      economyFee: result.feerate,
-      minimumFee: result.feerate
+      fastestFee: 1000, // Convert appropriately if needed 0.01
+      halfHourFee: satoshis,
+      hourFee: satoshis,
+      economyFee: satoshis,
+      minimumFee: satoshis
     };
   }
 

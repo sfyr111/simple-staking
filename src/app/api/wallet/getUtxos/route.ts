@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const amount = searchParams.get("amount") ? parseInt(searchParams.get("amount")as string) : undefined;
     const data = await bitcoinWallet.getUtxos(address || '', amount);
 
-    return Response.json({ data })
+    return Response.json(data)
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 })
   }

@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const requestBody = await request.json();
     const { psbtHex } = requestBody;
     const signedPsbt = await bitcoinWallet.signPsbt(psbtHex);
-    return Response.json({ data: signedPsbt })
+    return Response.json(signedPsbt)
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 })
   }

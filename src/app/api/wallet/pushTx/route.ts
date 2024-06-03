@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const requestBody = await request.json();
     const { txHex } = requestBody;
     const txId = await bitcoinWallet.pushTx(txHex);
-    return Response.json({ data: txId })
+    return Response.json(txId)
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 })
   }

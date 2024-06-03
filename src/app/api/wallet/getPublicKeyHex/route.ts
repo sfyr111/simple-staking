@@ -6,7 +6,7 @@ export async function GET(request: Request) {
 
     const data = await bitcoinWallet.getPublicKey(new URL(request.url).searchParams.get('address'));
 
-    return Response.json({ data })
+    return Response.json(data)
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 })
   }
