@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { initBitcoinCoreWallet } from "@/app/wallet/bitcoin_core_client";
 import GlobalParams from "@/app/mock/parameters/global-params.json";
-import { initBTCCurve, StakingScriptData, stakingTransaction, withdrawTimelockUnbondedTransaction } from "@/btc-staking-ts";
+import { initBTCCurve, slashTimelockUnbondedTransaction, StakingScriptData, stakingTransaction, withdrawTimelockUnbondedTransaction } from "@/btc-staking-ts";
 import { Psbt, Transaction, networks } from "bitcoinjs-lib";
 import { StakingScripts } from "@/btc-staking-ts/types/StakingScripts";
 import { UTXO } from "@/btc-staking-ts/types/UTXO";
@@ -237,9 +237,10 @@ const WalletPage = () => {
     const stakingOutputIndex: number = 0;
 
     const network = await wallet.getNetwork();
+    const { fastestFee } = await wallet.getNetworkFees();
 
     // The fee that the withdrawl transaction should use.
-    const withdrawalFee: number = 500;
+    const withdrawalFee: number = fastestFee;
 
     // The address to which the funds should be withdrawed to.
     const withdrawalAddress: string = address;
@@ -282,13 +283,51 @@ const WalletPage = () => {
   };
 
   // Function to handle withdrawal from staking
-  const handleWithdrawal = async () => {
-    // Include logic for withdrawal
-    console.log('Withdrawal initiated');
+  const createSlashTransaction = async () => {
+    const network = await wallet.getNetwork();
+    const { fastestFee } = await wallet.getNetworkFees();
+
+    const slashOutputIndex = 0;
+    const slashingRate = 0.5;
+    const slashFee = fastestFee;
+    const slashingAddress = 'bcrt1q7gjfeaydr8edeupkw3encq8pksnalvnda5yakt'; // slash_wallet
+
+
+    const unsignedSlashPsbt : { psbt : Psbt } = slashTimelockUnbondedTransaction(
+      scripts,
+      currentTx, // stakingTx,
+      slashingAddress,
+      slashingRate, // feeRate
+      slashFee, // fee,
+      toNetwork(network),
+      slashOutputIndex,
+    );
+
+    // 输出未签名的 PSBT 信息
+    const psbtBase64 = unsignedSlashPsbt.psbt.toBase64();
+    console.log('psbtBase64: ', psbtBase64);
+
+    const unSignedSlashPsbtHex = unsignedSlashPsbt.psbt.toHex();
+    console.log('unSignedSlashPsbtHex: ', unSignedSlashPsbtHex);
+
+    // 签名 PSBT
+    const signedSlashPsbt = await wallet.signPsbt(unSignedSlashPsbtHex);
+    const finalPsbt = Psbt.fromHex(signedSlashPsbt);
+    finalPsbt.finalizeAllInputs();
+
+    // 提取最终的交易
+    const slashTx = finalPsbt.extractTransaction();
+
+    // 输出交易信息，以便于广播
+    console.log('slashTx: ', slashTx);
+    console.log('slashTx.toHex(): ', slashTx.toHex()); // Hex string to be broadcasted
+;
+
   };
 
   const handlePushTx = async () => {
     const txId = await wallet.pushTx(pushHex);
+    // {"error":"non-BIP68-final"} timelock error
     setResponse(`Transaction ID: ${txId}`);
   }
 
@@ -360,8 +399,8 @@ const WalletPage = () => {
         <button className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-600" onClick={createWithdrawalTransaction}>
           Create Withdrawal Transaction
         </button>
-        <button className="px-4 py-2 font-bold text-white bg-yellow-500 rounded hover:bg-yellow-600" onClick={handleWithdrawal}>
-          Handle Withdrawal
+        <button className="px-4 py-2 font-bold text-white bg-yellow-500 rounded hover:bg-yellow-600" onClick={createSlashTransaction}>
+          Create Slash Transaction
         </button>
       </div>
 

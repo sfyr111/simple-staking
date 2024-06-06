@@ -36,6 +36,14 @@
   + `src/app/mock/handlePsbtBase64.ts` 执行 `ts-node src/app/mock/handlePsbtBase64.ts {psbtBase64}`
   + 需要当前钱包私钥创建 keyEpair 进行手动签名 leafScript
 
++ 创建惩罚交易并签名返回 txHex `createSlashTransaction`
+  + 执行 `ts-node src/app/mock/handlePsbtBase64.ts {psbtBase64}` 的多签功能
+  ```typescript
+  psbt.signInput(i, privateKey);
+  finalityECpairs.forEach((keyECpair) => psbt.signInput(i, keyECpair));
+  covenantECpairs.forEach((keyECpair) => psbt.signInput(i, keyECpair));
+  ```
+
 + 签名 psbt 交易 `handleSignPsbt`
 
 + 广播交易 txHex 返回 txId `handlePushTx`

@@ -9,6 +9,37 @@ const ECPair = ECPairFactory(ecc);
 // 函数来处理签名和提取交易
 async function signAndExtractTransaction(psbtBase64: string, privateKeyWIF: string, network): Promise<string> {
   const privateKey = ECPair.fromWIF(privateKeyWIF, network);
+
+  const covenantPks = [
+    {
+      address: "bcrt1psw5qv658evh7nqqpwxk8neryjaae8rs0ygzeh8m448aj6xwsu6psk5tkuz",
+      privateKey: "cNjEdTh2Aq9uCRqUnTaFv62i6HWgr4EEzosNaya8ssTry8NNgjRm",
+      publicKey: "0283a8066a87cb2fe9800171ac79e464977b938e0f22059b9f75a9fb2d19d0e683"
+    },
+    {
+      address: "bcrt1putkv5qe6axcsk28khszwk80l2w29ls8lu6s2xxdmgp78ngc777kq2yxkl5",
+      privateKey: "cTbxCLr6bejXQDiv1Poottc9UF4DtoDBFD99ZMT85v4wq7c8gxrA",
+      publicKey: "02e2ecca033ae9b10b28f6bc04eb1dff53945fc0ffe6a0a319bb407c79a31ef7ac"
+    },
+    {
+      address: "bcrt1pz73eahumhqnhsuup4ja4rn4uh2cskru0q6mn9h95hr2w56hrmvys39vkga",
+      privateKey: "cP3fkGwdh3LMHu7na61hJYF494Ske7eoSq8LyMmivGb1aM1aUuQL",
+      publicKey: "0217a39edf9bb827787381acbb51cebcbab10b0f8f06b732dcb4b8d4ea6ae3db09"
+    },
+  ]
+
+  const finalityPks = [
+    {
+      address: "bcrt1p4ava77vgell9smwj2all3erfyqhmxzn2vrj3hvd93ze88xcm7x9q68hjr6",
+      privateKey: "cQo7ZZCshP5EuSPuY2rZLDETpsSAEX7Si6nXKrT2TLpTC3Rjv9Kp",
+      publicKey: "03af59df7988cffe586dd2577ff8e469202fb30a6a60e51bb1a588b2739b1bf18a"
+    },
+  ]
+
+  const covenantECpairs = covenantPks.map(covenantPk => ECPair.fromWIF(covenantPk.privateKey, network));
+
+  const finalityECpairs = finalityPks.map(finalityPk => ECPair.fromWIF(finalityPk.privateKey, network));
+
   const psbt = bitcoin.Psbt.fromBase64(psbtBase64);
 
   const publicKey = privateKey.publicKey.toString('hex');
@@ -34,9 +65,13 @@ async function signAndExtractTransaction(psbtBase64: string, privateKeyWIF: stri
 
   // 签名所有输入
   for (let i = 0; i < psbt.inputCount; i++) {
-    const sighashTypes = bitcoin.Transaction.SIGHASH_DEFAULT;  // 使用 Taproot 推荐的默认 sighash
+    // const sighashTypes = bitcoin.Transaction.SIGHASH_DEFAULT;  // 使用 Taproot 推荐的默认 sighash
     // 确保使用对应的方法进行签名
     psbt.signInput(i, privateKey);
+    finalityECpairs.forEach((keyECpair) => psbt.signInput(i, keyECpair));
+    covenantECpairs.forEach((keyECpair) => psbt.signInput(i, keyECpair));
+    // "error": "non-mandatory-script-verify-flag (Operation not valid with the current stack size)" 多签数量不对
+
     // 验证签名，如果不验证，直接调用finalize可能会因为无效签名而出错
     // if (!psbt.validateSignaturesOfInput(i, privateKey.publicKey)) {
     //   throw new Error(`Invalid signature for input ${i}`);
